@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Task Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --surface2: #f0efec;
+    --border: #e4e3df;
+    --border2: #d1d0cb;
+    --text: #1a1a18;
+    --text2: #6b6a65;
+    --text3: #9b9a95;
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --amber: #d97706;
+    --amber-bg: #fffbeb;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-icon svg { width: 16px; height: 16px; fill: white; }
+
+  .board-id-pill {
+    font-size: 12px;
+    color: var(--text2);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .board-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface2); }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+  .btn svg { width: 14px; height: 14px; }
+
+  /* ── Layout ── */
+  .main { max-width: 900px; margin: 0 auto; padding: 28px 20px; }
+
+  /* ── Welcome / Board Join ── */
+  #welcome-screen {
+    min-height: calc(100vh - 56px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .welcome-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+  }
+  .welcome-icon {
+    width: 56px; height: 56px;
+    background: var(--accent-bg);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .welcome-icon svg { width: 28px; height: 28px; fill: var(--accent); }
+  .welcome-card h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .welcome-card p { color: var(--text2); margin-bottom: 28px; font-size: 14px; }
+  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--text3); font-size: 12px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .input-group { display: flex; gap: 8px; margin-top: 8px; }
+  .input-group .input { flex: 1; }
+
+  /* ── Stats bar ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .stat-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .stat-value { font-size: 24px; font-weight: 600; color: var(--text); }
+  .stat-value.red { color: var(--red); }
+
+  /* ── Add task panel ── */
+  .add-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .add-panel-header {
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 500;
+    font-size: 14px;
+    user-select: none;
+  }
+  .add-panel-header:hover { background: var(--surface2); }
+  .add-panel-body { padding: 0 18px 18px; border-top: 1px solid var(--border); display: none; }
+  .add-panel-body.open { display: block; padding-top: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+  .field .input, .field select, .field textarea { width: 100%; }
+  .field textarea { height: 64px; resize: none; }
+  select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236b6a65' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+  select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
+  /* ── Filters & Search ── */
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 160px; }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text3); fill: none; pointer-events: none; }
+  .search-wrap .input { padding-left: 32px; }
+  .filter-tabs { display: flex; gap: 4px; }
+  .ftab {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text2);
+    background: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .ftab:hover { background: var(--surface2); color: var(--text); }
+  .ftab.active { background: var(--surface); border-color: var(--border2); color: var(--text); }
+
+  /* ── Task cards ── */
+  .task-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .task-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .task-card:hover { border-color: var(--border2); }
+  .task-card.is-done { opacity: 0.5; }
+
+  .check-btn {
+    width: 20px; height: 20px; min-width: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border2);
+    background: none;
+    cursor: pointer;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .check-btn:hover { border-color: var(--green); }
+  .check-btn.checked { background: var(--green); border-color: var(--green); }
+  .check-btn.checked svg { display: block; }
+  .check-btn svg { display: none; width: 11px; height: 11px; stroke: white; fill: none; stroke-width: 2.5; }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .is-done .task-title { text-decoration: line-through; color: var(--text3); }
+  .task-desc { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+  .task-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .badge svg { width: 10px; height: 10px; }
+  .badge-user { background: var(--accent-bg); color: var(--accent); }
+  .badge-hi { background: var(--red-bg); color: var(--red); }
+  .badge-med { background: var(--amber-bg); color: var(--amber); }
+  .badge-lo { background: var(--green-bg); color: var(--green); }
+  .badge-due { background: var(--surface2); color: var(--text2); }
+  .badge-overdue { background: var(--red-bg); color: var(--red); }
+  .badge-today { background: var(--amber-bg); color: var(--amber); }
+  .badge-by { font-size: 11px; color: var(--text3); }
+
+  .task-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .icon-btn {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: none;
+    color: var(--text3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { background: var(--surface2); color: var(--text); }
+  .icon-btn.del:hover { background: var(--red-bg); color: var(--red); }
+  .icon-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text3);
+  }
+  .empty-state svg { width: 40px; height: 40px; stroke: currentColor; fill: none; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── Share modal ── */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    display: none;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 28px;
+    width: 90%;
+    max-width: 440px;
+    position: relative;
+  }
+  .modal h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  .modal p { color: var(--text2); font-size: 13px; margin-bottom: 16px; }
+  .copy-row { display: flex; gap: 8px; }
+  .copy-row .input { font-size: 12px; color: var(--text2); font-family: monospace; background: var(--surface2); }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text3); font-size: 20px; line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--text);
+    color: white;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    z-index: 300;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.show { opacity: 1; transform: none; }
+  .toast svg { width: 14px; height: 14px; stroke: #4ade80; fill: none; }
+
+  /* ── Loading ── */
+  #loading {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px;
+    z-index: 500;
+    font-size: 14px; color: var(--text2);
+  }
+  .spinner {
+    width: 24px; height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+    .topbar { padding: 0 14px; }
+    .main { padding: 16px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <span>Loading your board…</span>
+</div>
+
+<!-- Top bar -->
+<header class="topbar">
+  <a class="logo" href="#">
+    <div class="logo-icon">
+      <svg viewBox="0 0 16 16"><path d="M2 3h12v2H2zm0 4h8v2H2zm0 4h6v2H2z"/></svg>
+    </div>
+    TaskBoard
+  </a>
+  <div class="board-id-pill" id="board-pill">
+    <span class="board-dot"></span>
+    <span id="board-id-label">Loading…</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn" onclick="refreshTasks()" title="Refresh">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px"><path d="M1 7A6 6 0 1 1 7 13"/><path d="M1 3v4h4"/></svg>
+      Refresh
+    </button>
+    <button class="btn btn-primary" onclick="openShare()">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px"><circle cx="10" cy="3" r="1.5"/><circle cx="10" cy="11" r="1.5"/><circle cx="3" cy="7" r="1.5"/><path d="M4.4 6.2l4.2-2.4M4.4 7.8l4.2 2.4"/></svg>
+      Share board
+    </button>
+  </div>
+</header>
+
+<!-- Welcome screen (shown if no board ID) -->
+<div id="welcome-screen" style="display:none; padding: 20px;">
+  <div class="welcome-card">
+    <div class="welcome-icon">
+      <svg viewBox="0 0 28 28"><rect x="3" y="3" width="22" height="22" rx="4"/><path d="M9 14l3 3 7-7" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </div>
+    <h1>Team TaskBoard</h1>
+    <p>Create a shared board or join an existing one with a board code. Everyone with the link can add and manage tasks.</p>
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding: 10px;" onclick="createBoard()">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px"><path d="M7 1v12M1 7h12"/></svg>
+      Create new board
+    </button>
+    <div class="divider">or join existing</div>
+    <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px;text-align:left;">Board code</label>
+    <div class="input-group">
+      <input class="input" id="join-code" placeholder="Paste board code…" onkeydown="if(event.key==='Enter')joinBoard()">
+      <button class="btn btn-primary" onclick="joinBoard()">Join</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main app -->
+<main class="main" id="app" style="display:none">
+
+  <!-- Stats -->
+  <div class="stats" id="stats-row"></div>
+
+  <!-- Add task panel -->
+  <div class="add-panel">
+    <div class="add-panel-header" onclick="toggleAddPanel()">
+      <span>
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px;vertical-align:-1px;margin-right:6px"><path d="M7 1v12M1 7h12"/></svg>
+        Add a task
+      </span>
+      <svg id="add-chevron" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px;transition:transform 0.2s"><path d="M2 5l5 4 5-4"/></svg>
+    </div>
+    <div class="add-panel-body" id="add-body">
+      <div class="form-grid">
+        <div class="field"><label>Task title *</label><input class="input" id="f-title" placeholder="What needs to be done?"></div>
+        <div class="field"><label>Assign to</label><input class="input" id="f-assignee" placeholder="Team member name"></div>
+      </div>
+      <div class="field" style="margin-bottom:12px"><label>Description (optional)</label><textarea class="input" id="f-desc" placeholder="Add notes, context, or links…"></textarea></div>
+      <div class="form-grid-3">
+        <div class="field">
+          <label>Priority</label>
+          <select id="f-priority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select>
+        </div>
+        <div class="field"><label>Due date</label><input class="input" type="date" id="f-due"></div>
+        <div class="field"><label>Added by</label><input class="input" id="f-creator" placeholder="Your name"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:9px;" onclick="addTask()">Add task</button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 14 14" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><path d="M10 10l2.5 2.5"/></svg>
+      <input class="input" id="search" placeholder="Search tasks, people…" oninput="renderTasks()">
+    </div>
+    <div class="filter-tabs">
+      <button class="ftab active" onclick="setFilter('all',this)">All</button>
+      <button class="ftab" onclick="setFilter('todo',this)">To do</button>
+      <button class="ftab" onclick="setFilter('done',this)">Done</button>
+      <button class="ftab" onclick="setFilter('high',this)">High</button>
+      <button class="ftab" onclick="setFilter('overdue',this)">Overdue</button>
+    </div>
+  </div>
+
+  <!-- Task list -->
+  <div class="task-list" id="task-list"></div>
+</main>
+
+<!-- Share modal -->
+<div class="modal-bg" id="share-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeShare()">×</button>
+    <h3>Share this board</h3>
+    <p>Send this link to your team. Anyone with it can view and add tasks — no login needed.</p>
+    <div class="copy-row">
+      <input class="input" id="share-url" readonly>
+      <button class="btn btn-primary" onclick="copyUrl()">Copy</button>
+    </div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+      <p style="margin-bottom:8px;">Board code only</p>
+      <div class="copy-row">
+        <input class="input" id="share-code" readonly style="font-family:monospace;letter-spacing:0.1em;font-size:16px;font-weight:600;text-align:center;">
+        <button class="btn" onclick="copyCode()">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 14 14" stroke-width="2"><path d="M2 7l3.5 3.5L12 3"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// Storage: JSONBlob (free, no-auth public JSON store)
+// Each board is a unique JSONBlob ID stored in URL hash
+// ─────────────────────────────────────────────
+
+const API = 'https://jsonblob.com/api/jsonBlob';
+let boardId = null;
+let tasks = [];
+let filter = 'all';
+let autoRefreshTimer = null;
+
+// ── Init ──
+window.addEventListener('load', init);
+
+function init() {
+  const hash = location.hash.replace('#','').trim();
+  if (hash && hash.length > 10) {
+    boardId = hash;
+    loadBoard();
+  } else {
+    hide('loading');
+    show('welcome-screen');
+    hide('app');
+    document.getElementById('board-id-label').textContent = 'No board';
+  }
+}
+
+function createBoard() {
+  hide('welcome-screen');
+  show('loading');
+  const initial = [];
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(initial)
+  }).then(r => {
+    const loc = r.headers.get('Location') || '';
+    const id = loc.split('/').pop();
+    if (!id) throw new Error('No ID');
+    boardId = id;
+    tasks = [];
+    location.hash = boardId;
+    startApp();
+  }).catch(() => {
+    // Fallback: use localStorage with a random key
+    boardId = 'local-' + Math.random().toString(36).slice(2,10);
+    tasks = [];
+    location.hash = boardId;
+    localStorage.setItem('board-' + boardId, JSON.stringify([]));
+    startApp();
+    toast('Board created (local mode)');
+  });
+}
+
+function joinBoard() {
+  const code = document.getElementById('join-code').value.trim();
+  if (!code) return toast('Enter a board code');
+  boardId = code;
+  location.hash = boardId;
+  hide('welcome-screen');
+  show('loading');
+  loadBoard();
+}
+
+async function loadBoard() {
+  try {
+    let data;
+    if (boardId.startsWith('local-')) {
+      data = JSON.parse(localStorage.getItem('board-' + boardId) || '[]');
+    } else {
+      const r = await fetch(API + '/' + boardId, { headers: { 'Accept': 'application/json' } });
+      if (!r.ok) throw new Error('Not found');
+      data = await r.json();
+    }
+    tasks = Array.isArray(data) ? data : [];
+    startApp();
+  } catch(e) {
+    hide('loading');
+    show('welcome-screen');
+    hide('app');
+    toast('Board not found. Check the code and try again.');
+  }
+}
+
+async function saveBoard() {
+  if (!boardId) return;
+  try {
+    if (boardId.startsWith('local-')) {
+      localStorage.setItem('board-' + boardId, JSON.stringify(tasks));
+    } else {
+      await fetch(API + '/' + boardId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(tasks)
+      });
+    }
+  } catch(e) { console.warn('Save failed', e); }
+}
+
+async function refreshTasks() {
+  if (!boardId) return;
+  try {
+    let data;
+    if (boardId.startsWith('local-')) {
+      data = JSON.parse(localStorage.getItem('board-' + boardId) || '[]');
+    } else {
+      const r = await fetch(API + '/' + boardId, { headers: { 'Accept': 'application/json' } });
+      data = await r.json();
+    }
+    tasks = Array.isArray(data) ? data : [];
+    renderStats(); renderTasks();
+    toast('Board refreshed');
+  } catch(e) { toast('Refresh failed'); }
+}
+
+function startApp() {
+  hide('loading');
+  hide('welcome-screen');
+  show('app');
+  document.getElementById('board-id-label').textContent = 'Board · ' + boardId.slice(0,8) + '…';
+  renderStats(); renderTasks();
+  clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(silentRefresh, 20000);
+}
+
+async function silentRefresh() {
+  if (!boardId) return;
+  try {
+    let data;
+    if (boardId.startsWith('local-')) {
+      data = JSON.parse(localStorage.getItem('board-' + boardId) || '[]');
+    } else {
+      const r = await fetch(API + '/' + boardId, { headers: { 'Accept': 'application/json' } });
+      data = await r.json();
+    }
+    const newTasks = Array.isArray(data) ? data : [];
+    if (JSON.stringify(newTasks) !== JSON.stringify(tasks)) {
+      tasks = newTasks;
+      renderStats(); renderTasks();
+    }
+  } catch(e) {}
+}
+
+// ── Add task ──
+function toggleAddPanel() {
+  const body = document.getElementById('add-body');
+  const chevron = document.getElementById('add-chevron');
+  body.classList.toggle('open');
+  chevron.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+async function addTask() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { toast('Enter a task title'); return; }
+  const task = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    title,
+    desc: document.getElementById('f-desc').value.trim(),
+    assignee: document.getElementById('f-assignee').value.trim(),
+    priority: document.getElementById('f-priority').value,
+    due: document.getElementById('f-due').value,
+    creator: document.getElementById('f-creator').value.trim(),
+    done: false,
+    createdAt: new Date().toISOString()
+  };
+  tasks.unshift(task);
+  ['f-title','f-desc','f-assignee','f-due','f-creator'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-priority').value = 'medium';
+  renderStats(); renderTasks();
+  toast('Task added');
+  await saveBoard();
+}
+
+async function toggleDone(id) {
+  const t = tasks.find(x => x.id === id);
+  if (t) { t.done = !t.done; renderStats(); renderTasks(); await saveBoard(); }
+}
+
+async function deleteTask(id) {
+  tasks = tasks.filter(x => x.id !== id);
+  renderStats(); renderTasks();
+  toast('Task deleted');
+  await saveBoard();
+}
+
+// ── Filter & search ──
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function dueStatus(due) {
+  if (!due) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(due + 'T00:00:00');
+  if (d < today) return 'overdue';
+  if (d.getTime() === today.getTime()) return 'today';
+  return null;
+}
+
+function fmtDate(str) {
+  if (!str) return '';
+  return new Date(str + 'T00:00:00').toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+
+// ── Render ──
+function renderStats() {
+  const total = tasks.length;
+  const done = tasks.filter(t => t.done).length;
+  const todo = total - done;
+  const overdue = tasks.filter(t => !t.done && t.due && dueStatus(t.due) === 'overdue').length;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-value">${total}</div></div>
+    <div class="stat"><div class="stat-label">To do</div><div class="stat-value">${todo}</div></div>
+    <div class="stat"><div class="stat-label">Completed</div><div class="stat-value">${done}</div></div>
+    <div class="stat"><div class="stat-label">Overdue</div><div class="stat-value${overdue>0?' red':''}">${overdue}</div></div>
+  `;
+}
+
+function renderTasks() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  let list = tasks.filter(t => {
+    if (q && ![t.title, t.assignee, t.desc, t.creator].some(s => (s||'').toLowerCase().includes(q))) return false;
+    if (filter === 'todo') return !t.done;
+    if (filter === 'done') return t.done;
+    if (filter === 'high') return t.priority === 'high' && !t.done;
+    if (filter === 'overdue') return !t.done && t.due && dueStatus(t.due) === 'overdue';
+    return true;
+  });
+
+  const el = document.getElementById('task-list');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="4" stroke-width="1.5"/><path d="M13 20h14M13 26h8" stroke-width="1.5"/><path d="M13 14h14" stroke-width="1.5"/></svg>
+      <p>${tasks.length ? 'No tasks match this filter' : 'No tasks yet — add the first one above'}</p>
+    </div>`;
+    return;
+  }
+
+  const priClass = { high: 'badge-hi', medium: 'badge-med', low: 'badge-lo' };
+
+  el.innerHTML = list.map(t => {
+    const ds = t.due ? dueStatus(t.due) : null;
+    const dueCls = ds === 'overdue' ? 'badge-overdue' : ds === 'today' ? 'badge-today' : 'badge-due';
+    const dueLabel = ds === 'overdue' ? 'Overdue · ' : ds === 'today' ? 'Today · ' : '';
+    return `<div class="task-card${t.done?' is-done':''}">
+      <button class="check-btn${t.done?' checked':''}" onclick="toggleDone('${t.id}')" aria-label="${t.done?'Mark incomplete':'Mark complete'}">
+        <svg viewBox="0 0 11 9"><path d="M1 4.5l3 3 6-7"/></svg>
+      </button>
+      <div class="task-body">
+        <div class="task-title">${esc(t.title)}</div>
+        ${t.desc ? `<div class="task-desc">${esc(t.desc)}</div>` : ''}
+        <div class="task-meta">
+          ${t.assignee ? `<span class="badge badge-user"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="3.5" r="2"/><path d="M1 9c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>${esc(t.assignee)}</span>` : ''}
+          <span class="badge ${priClass[t.priority]||'badge-med'}">${t.priority}</span>
+          ${t.due ? `<span class="badge ${dueCls}">${dueLabel}${fmtDate(t.due)}</span>` : ''}
+          ${t.creator ? `<span class="badge-by">Added by ${esc(t.creator)}</span>` : ''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="icon-btn del" onclick="deleteTask('${t.id}')" aria-label="Delete task">
+          <svg viewBox="0 0 14 14" stroke-linecap="round"><path d="M2 3.5h10M5 3.5V2h4v1.5M5.5 6v4.5M8.5 6v4.5M3 3.5l.7 8h6.6l.7-8"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Share ──
+function openShare() {
+  const url = location.href.split('#')[0] + '#' + boardId;
+  document.getElementById('share-url').value = url;
+  document.getElementById('share-code').value = boardId;
+  document.getElementById('share-modal').classList.add('open');
+}
+function closeShare() { document.getElementById('share-modal').classList.remove('open'); }
+function copyUrl() { copyText(document.getElementById('share-url').value, 'Link copied!'); }
+function copyCode() { copyText(document.getElementById('share-code').value, 'Code copied!'); }
+function copyText(text, msg) {
+  navigator.clipboard.writeText(text).then(() => toast(msg)).catch(() => {
+    document.getElementById('share-url').select();
+    document.execCommand('copy');
+    toast(msg);
+  });
+}
+
+// ── Helpers ──
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function show(id) { document.getElementById(id).style.display = ''; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
+
+let toastTimer;
+function toast(msg) {
+  clearTimeout(toastTimer);
+  document.getElementById('toast-msg').textContent = msg;
+  document.getElementById('toast').classList.add('show');
+  toastTimer = setTimeout(() => document.getElementById('toast').classList.remove('show'), 2500);
+}
+
+document.getElementById('share-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('share-modal')) closeShare();
+});
+</script>
+</body>
+</html>
